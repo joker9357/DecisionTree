@@ -14,13 +14,15 @@ class TreeNode:
 class DecisionTree:
     def __init__(self,filename):
 
-        csvparser=CsvParser()
-        attributeNames = csvparser.attributeName
-        data = csvparser.data
-        colums = csvparser.colums
-        rows = csvparser.rows
-        target = csvparser.target
+        csvparser=CsvParser(filename)
 
+        self.attributeNames = csvparser.attributeName
+        self.data = csvparser.data
+        self.colums = csvparser.colums
+        self.rows = csvparser.rows
+        self.target = csvparser.target
+
+        self.root=self.ID3(self.colums,self.rows,self.target)
 
     def ID3(self,colums,rows,target):
         if len(rows)==0:
@@ -44,7 +46,7 @@ class DecisionTree:
                     newAttributes.append(attribute)
             colums = newAttributes
 
-            branch=self.separate(rows,target,AttributeChosen)
+            branch=self.Separate(rows,target,AttributeChosen)
             node.left=self.ID3(colums,branch[0][0],branch[0][1])
             node.right = self.ID3(colums, branch[1][0], branch[1][1])
 
@@ -56,7 +58,47 @@ class DecisionTree:
         maxGainRatio = -1
         targetAttribute = -1
 
-    def separate(self,rows,target,AttributeChosen):
+        for attribute in colums:
+
+            splitinfo=self.getSepInfo(rows,attribute)
+            if splitinfo>0:
+                gainRatio=self.getGain(rows,target,Entropy,attribute)/splitinfo
+                if gainRatio>maxGainRatio:
+                    maxGainRatio=gainRatio
+                    targetAttribute=attribute
+
+
+        return targetAttribute
+
+
+
+    def getSepInfo(self,rows,AttributeChosen):
+        count=len(rows)
+        s0=0
+        for i in range(len(rows)):
+            if self.data[i][AttributeChosen]==0:
+                s0+=1
+
+        p0=1.0*s0/count
+        p1=1-p0
+        if p0==0 or p1==0:
+            return 0
+
+        return -(p0*math.log(p0,2)+p1*math.log(p1,2))
+
+    def getGain(self,rows,target,Entropy,Attribute):
+        count=len(rows)
+        branch=self.Separate(rows,target,Attribute)
+        e1 = self.getEntropy(branch[0][0],branch[0][1])
+        e2 = self.getEntropy(branch[1][0], branch[1][1])
+
+        p1=1.0*len(branch[0][0])/count
+        p2=1-p1
+
+        Gain=Entropy-p1*e1-p2*e2
+        return Gain
+
+    def Separate(self,rows,target,AttributeChosen):
         new_rows0 = []
         new_rows1 = []
         new_target0 = []
@@ -73,7 +115,7 @@ class DecisionTree:
 
 
 
-    def getEntropy(rows,target):
+    def getEntropy(self,rows,target):
         num=len(rows)
         count=0
         for i in range(len(target)):
@@ -85,7 +127,7 @@ class DecisionTree:
             return 0
         return - (pos * math.log(pos, 2) + neg * math.log(neg, 2))
 
-    def getMostCommon(target):
+    def getMostCommon(self,target):
         if len(target)==1:
             return target[0]
         count = 0

@@ -1,6 +1,6 @@
 import csv
 class CsvParser:
-    def __init__(self,filename='./data_sets1/training_set.csv'):
+    def __init__(self,filename):
 
         self.data=[]
         with open(filename,'rb') as csvfile:
