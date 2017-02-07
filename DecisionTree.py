@@ -28,6 +28,7 @@ class DecisionTree:
         if len(rows)==0:
             return None
         node=TreeNode(-1)
+        print(len(colums))
 
         Entropy=self.getEntropy(rows,target)
         node.label=self.getMostCommon(target)
@@ -39,6 +40,7 @@ class DecisionTree:
             if AttributeChosen==-1:
                 return node
             node.val=AttributeChosen
+            #print(AttributeChosen)
 
             newAttributes = []
             for attribute in colums:
@@ -75,7 +77,7 @@ class DecisionTree:
     def getSepInfo(self,rows,AttributeChosen):
         count=len(rows)
         s0=0
-        for i in range(len(rows)):
+        for i in rows:
             if self.data[i][AttributeChosen]==0:
                 s0+=1
 

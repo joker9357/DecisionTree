@@ -2,7 +2,7 @@ import sys
 from DecisionTree import DecisionTree
 
 def main():
-    DecisionTree('./data_sets1/training_set.csv')
+    decisionTree=DecisionTree('./data_sets1/training_set.csv')
 
 
     print "finish"
