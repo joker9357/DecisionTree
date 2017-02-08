@@ -3,6 +3,7 @@ import random
 import copy
 from collections import deque
 from csvparser import CsvParser
+from validation import Validator
 
 class TreeNode:
     def __init__(self,val,left=None,right=None):
@@ -20,23 +21,22 @@ class DecisionTree:
         self.data = csvparser.data
         self.colums = csvparser.colums
         self.rows = csvparser.rows
-        self.target = csvparser.target
+        self.root=self.ID3(self.colums,self.rows)
 
-        self.root=self.ID3(self.colums,self.rows,self.target)
-
-    def ID3(self,colums,rows,target):
+    def ID3(self,colums,rows):
         if len(rows)==0:
             return None
         node=TreeNode(-1)
         #print(len(colums))
 
-        Entropy=self.getEntropy(rows,target)
-        node.label=self.getMostCommon(target)
+        Entropy=self.getEntropy(rows)
+        node.label=self.getMostCommon(rows)
 
         if Entropy==0 or len(colums)==0:
             return node
+
         else:
-            AttributeChosen=self.getAttribute(rows,colums,target,Entropy)
+            AttributeChosen=self.getAttribute(rows,colums,Entropy)
             if AttributeChosen==-1:
                 return node
             node.val=AttributeChosen
@@ -48,15 +48,15 @@ class DecisionTree:
                     newAttributes.append(attribute)
             colums = newAttributes
 
-            branch=self.Separate(rows,target,AttributeChosen)
-            node.left=self.ID3(colums,branch[0][0],branch[0][1])
-            node.right = self.ID3(colums, branch[1][0], branch[1][1])
+            branch=self.Separate(rows,AttributeChosen)
+            node.left=self.ID3(colums,branch[0])
+            node.right = self.ID3(colums, branch[1])
 
             return node
 
 
 
-    def getAttribute(self,rows,colums,target,Entropy):
+    def getAttribute(self,rows,colums,Entropy):
         maxGainRatio = -1
         targetAttribute = -1
 
@@ -64,7 +64,7 @@ class DecisionTree:
 
             splitinfo=self.getSepInfo(rows,attribute)
             if splitinfo>0:
-                gainRatio=self.getGain(rows,target,Entropy,attribute)/splitinfo
+                gainRatio=self.getGain(rows,Entropy,attribute)/splitinfo
                 if gainRatio>maxGainRatio:
                     maxGainRatio=gainRatio
                     targetAttribute=attribute
@@ -88,40 +88,38 @@ class DecisionTree:
 
         return -(p0*math.log(p0,2)+p1*math.log(p1,2))
 
-    def getGain(self,rows,target,Entropy,Attribute):
+    def getGain(self,rows,Entropy,Attribute):
         count=len(rows)
-        branch=self.Separate(rows,target,Attribute)
-        e1 = self.getEntropy(branch[0][0],branch[0][1])
-        e2 = self.getEntropy(branch[1][0], branch[1][1])
+        branch=self.Separate(rows,Attribute)
+        e1 = self.getEntropy(branch[0])
+        e2 = self.getEntropy(branch[1])
 
-        p1=1.0*len(branch[0][0])/count
+        p1=1.0*len(branch[0])/count
         p2=1-p1
 
         Gain=Entropy-p1*e1-p2*e2
         return Gain
 
-    def Separate(self,rows,target,AttributeChosen):
+    def Separate(self,rows,AttributeChosen):
         new_rows0 = []
         new_rows1 = []
-        new_target0 = []
-        new_target1 = []
 
-        for i in range(len(rows)):
-            if self.data[rows[i]][AttributeChosen]==0:
-                new_rows0.append(rows[i])
-                new_target0.append(target[i])
+        for i in rows:
+            if self.data[i][AttributeChosen]==0:
+                new_rows0.append(i)
+
             else:
-                new_rows1.append(rows[i])
-                new_target1.append(target[i])
-        return [(new_rows0,new_target0), (new_rows1,new_target1)]
+                new_rows1.append(i)
+
+        return [new_rows0,new_rows1]
 
 
 
-    def getEntropy(self,rows,target):
+    def getEntropy(self,rows):
         num=len(rows)
         count=0
-        for i in range(len(rows)):
-            if target[i]==1:
+        for i in rows:
+            if self.data[i][-1]==1:
                 count+=1
         pos=1.0*count/num
         neg=1-pos
@@ -129,14 +127,14 @@ class DecisionTree:
             return 0
         return - (pos * math.log(pos, 2) + neg * math.log(neg, 2))
 
-    def getMostCommon(self,target):
-        if len(target)==1:
-            return target[0]
+    def getMostCommon(self,rows):
+        if len(rows)==1:
+            return self.data[rows[0]][-1]
         count = 0
-        for i in range(len(target)):
-            if i == 1:
+        for i in rows:
+            if self.data[i][-1]==1:
                 count += 1
-        if count>=len(target)/2:
+        if count>=len(rows)/2:
             return 1
         else:
             return 0

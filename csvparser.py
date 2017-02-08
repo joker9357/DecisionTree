@@ -15,4 +15,4 @@ class CsvParser:
 
         self.colums = range(len(self.attributeName))
         self.rows = range(len(self.data))
-        self.target = [row[-1] for row in self.data]
+
