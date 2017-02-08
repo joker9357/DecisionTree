@@ -28,7 +28,7 @@ class DecisionTree:
         if len(rows)==0:
             return None
         node=TreeNode(-1)
-        print(len(colums))
+        #print(len(colums))
 
         Entropy=self.getEntropy(rows,target)
         node.label=self.getMostCommon(target)
@@ -107,7 +107,7 @@ class DecisionTree:
         new_target1 = []
 
         for i in range(len(rows)):
-            if self.data[rows[i]][AttributeChosen]==1:
+            if self.data[rows[i]][AttributeChosen]==0:
                 new_rows0.append(rows[i])
                 new_target0.append(target[i])
             else:
@@ -120,8 +120,8 @@ class DecisionTree:
     def getEntropy(self,rows,target):
         num=len(rows)
         count=0
-        for i in range(len(target)):
-            if i==1:
+        for i in range(len(rows)):
+            if target[i]==1:
                 count+=1
         pos=1.0*count/num
         neg=1-pos
@@ -140,4 +140,32 @@ class DecisionTree:
             return 1
         else:
             return 0
+
+    def TreePrint(self,node,count):
+        if node==None:
+            return
+        string = ''
+        dep=''
+        if count>0:
+            for i in range(count):
+                dep+='|'
+        if node.val > -1:
+            curattr = self.attributeNames[node.val]
+            string = dep+ curattr + '=0:'
+            if node.left.val>0:
+                print string
+                self.TreePrint(node.left,count+1)
+            else:
+                string+=str(node.left.label)
+                print string
+
+            string = dep+ curattr + '=1:'
+            if node.right.val>0:
+                print string
+                self.TreePrint(node.right,count+1)
+            else:
+                string+=str(node.right.label)
+                print string
+
+
 
